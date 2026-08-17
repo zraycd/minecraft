@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Minecraft Speedrun Checklist</title>
+<style>
+  :root {
+    --bg: #14161a;
+    --panel: #1c1f26;
+    --line: #2b3039;
+    --text: #e6e8ec;
+    --dim: #767d8a;
+    --accent: #5ad14f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  main { width: 100%; max-width: 560px; }
+
+  .current {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  .current .label {
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 8px;
+  }
+  .current .goal {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  button {
+    width: 100%;
+    padding: 14px;
+    font: inherit;
+    font-weight: 700;
+    color: #14161a;
+    background: var(--accent);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  button:hover { filter: brightness(1.12); }
+  button:disabled { background: var(--line); color: var(--dim); cursor: default; filter: none; }
+
+  ol {
+    list-style: none;
+    margin: 24px 0 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+  li {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    padding: 10px 4px;
+    border-bottom: 1px solid var(--line);
+    color: var(--dim);
+  }
+  li .mark { width: 1.2em; flex: none; }
+  li.done .text { text-decoration: line-through; }
+  li.active { color: var(--text); font-weight: 700; }
+  li.active .mark { color: var(--accent); }
+
+  .reset {
+    display: block;
+    margin: 20px auto 0;
+    width: auto;
+    padding: 6px 12px;
+    background: none;
+    color: var(--dim);
+    font-weight: 400;
+    font-size: 13px;
+    text-decoration: underline;
+  }
+  .reset:hover { color: var(--text); filter: none; }
+</style>
+</head>
+<body>
+<main>
+  <div class="current">
+    <div class="label">Current objective <span id="count"></span></div>
+    <div class="goal" id="goal"></div>
+  </div>
+
+  <button id="next">Done — next objective</button>
+
+  <ol id="list"></ol>
+
+  <button class="reset" id="reset">reset</button>
+</main>
+
+<script>
+  const STEPS = [
+    "get stone tools",
+    "get wood",
+    "get food",
+    "iron tools + shield + bucket",
+    "go nether",
+    "find fortress and get 8 blaze rods",
+    "get 16 ender pearls",
+    "find stronghold",
+    "confirm you have bow, arrows, food",
+    "beat the ender dragon"
+  ];
+
+  const listEl = document.getElementById("list");
+  const goalEl = document.getElementById("goal");
+  const countEl = document.getElementById("count");
+  const nextBtn = document.getElementById("next");
+
+  let index = Number(localStorage.getItem("mcRunStep")) || 0;
+
+  const items = STEPS.map((step, i) => {
+    const li = document.createElement("li");
+    li.innerHTML = '<span class="mark"></span><span class="text"></span>';
+    li.querySelector(".text").textContent = step;
+    listEl.appendChild(li);
+    return li;
+  });
+
+  function render() {
+    const finished = index >= STEPS.length;
+
+    goalEl.textContent = finished ? "run complete 🐉" : STEPS[index];
+    countEl.textContent = finished ? "" : "(" + (index + 1) + "/" + STEPS.length + ")";
+
+    nextBtn.textContent = finished ? "all objectives complete" : "Done — next objective";
+    nextBtn.disabled = finished;
+
+    items.forEach((li, i) => {
+      li.className = i < index ? "done" : i === index ? "active" : "";
+      li.querySelector(".mark").textContent = i < index ? "✓" : i === index ? "▸" : "·";
+    });
+
+    localStorage.setItem("mcRunStep", index);
+  }
+
+  nextBtn.addEventListener("click", () => {
+    if (index < STEPS.length) index++;
+    render();
+  });
+
+  document.getElementById("reset").addEventListener("click", () => {
+    index = 0;
+    render();
+  });
+
+  render();
+</script>
+</body>
+</html>
